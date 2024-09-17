@@ -1,4 +1,12 @@
 #!/bin/bash
-PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-$PARENT_PATH/env dev exec event-listener composer --ignore-platform-req=ext-rdkafka $@
+set -eo pipefail
+
+PARENT_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd -P
+)
+
+cmd=$(printf '%q ' "composer $*")
+
+"${PARENT_PATH}/env" dev exec event-listener runuser --preserve-environment hostuser -c "${cmd}"

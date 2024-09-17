@@ -1,0 +1,20 @@
+parameters:
+  level: 6
+  paths:
+    - .
+  excludePaths:
+    - vendor/*
+  strictRules:
+    allRules: true
+    disallowedEmpty: false
+    disallowedShortTernary: false
+  treatPhpDocTypesAsCertain: false
+  reportUnmatchedIgnoredErrors: true
+  ignoreErrors:
+    # - identifier: missingType.generics
+    - identifier: missingType.iterableValue
+    - '#^Dynamic call to static method PHPUnit\\Framework\\Assert.*$#'
+    # Allow truthy checks for common patterns
+    - identifier: ternary.condNotBoolean
+    - identifier: if.condNotBoolean
+    - identifier: booleanNot.exprNotBoolean

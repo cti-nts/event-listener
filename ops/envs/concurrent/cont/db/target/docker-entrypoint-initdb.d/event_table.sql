@@ -30,15 +30,15 @@ CREATE TABLE public.event (
     source_id integer DEFAULT NULL,
     "name" text NOT NULL,
     channel text NOT NULL,
-    correlation_id text DEFAULT NULL,
     user_id text DEFAULT NULL,
+    correlation_id text DEFAULT NULL,
     aggregate_id integer NOT NULL,
     aggregate_version integer NOT NULL,
     data jsonb NOT NULL,
-    "timestamp" timestamp(3) without time zone DEFAULT now() NOT NULL,
+    "timestamp" timestamp(6) without time zone DEFAULT now() NOT NULL,
     dispatched boolean DEFAULT false NOT NULL,
-    dispatched_at timestamp(3) without time zone,
-    received_at timestamp(3) without time zone,
+    dispatched_at timestamp(6) without time zone,
+    received_at timestamp(6) without time zone,
     projected boolean DEFAULT false NOT NULL
 );
 
@@ -84,4 +84,3 @@ ALTER TABLE ONLY public.event
 --
 -- PostgreSQL database dump complete
 --
-

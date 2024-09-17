@@ -1,10 +1,8 @@
 /vendor/
-.composer
+/.composer/
 
-# PHP-CS-Fixer
-/.php-cs-fixer.php
-/.php-cs-fixer.cache
+# Cache files
+/*.cache
 
-# PHPUnit
-/.phpunit.cache
-.phpunit.result.cache
+/clover.xml
+/coveralls-upload.json

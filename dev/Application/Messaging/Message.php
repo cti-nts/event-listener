@@ -1,29 +1,30 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Application\Messaging;
 
 interface Message
 {
+    public function getBody(): string;
 
-    public function getBody():string;
+    public function getHeaders(): array;
 
-    public function getHeaders():array;
+    public function getHeader(string $name, mixed $default = null): mixed;
 
-    public function getHeader(string $name, mixed $default = null):mixed;
+    public function getProperties(): array;
 
-    public function getProperties():array;
+    public function getProperty(string $name, mixed $default = null): mixed;
 
-    public function getProperty(string $name, mixed $default = null):mixed;
+    public function getKey(): ?string;
 
-    public function getKey():?string;
+    public function withBody(string $body): Message;
 
-    public function withBody(string $body):Message;
+    public function withHeader(string $name, mixed $value): Message;
 
-    public function withHeader(string $name, mixed $value):Message;
+    public function withProperty(string $name, mixed $value): Message;
 
-    public function withProperty(string $name, mixed $value):Message;
+    public function withoutHeader(string $name): Message;
 
-    public function withoutHeader(string $name):Message;
-
-    public function withoutProperty(string $name):Message;
+    public function withoutProperty(string $name): Message;
 }

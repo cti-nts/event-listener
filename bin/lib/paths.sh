@@ -1,5 +1,6 @@
 #!/bin/bash
-LIB_PATH=$PARENT_PATH/..
-ENV_PATH=$PARENT_PATH/../../../ops/envs/$ENVIRONMENT
-COMPOSE_PATH=$ENV_PATH/comp
-CONTAINER_PATH=$ENV_PATH/cont
+
+set -eo pipefail
+
+ENV_PATH=${PARENT_PATH}/../../../ops/envs/${ENVIRONMENT}
+export COMPOSE_PATH=${ENV_PATH}/comp

@@ -1,7 +1,8 @@
 #!/bin/bash
-if [ -z "$ENVIRONMENT" ]
-then
-    echo $ENVIRONMENT
-    ENVIRONMENT=$1
-    shift 1
+
+set -eo pipefail
+
+if [[ -z "${ENVIRONMENT}" ]]; then
+  ENVIRONMENT=$1
+  shift 1 || true
 fi

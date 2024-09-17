@@ -1,49 +1,30 @@
-<?php declare(strict_types=1);
+<?php
 
-use Behat\Behat\Context\Context;
-use Behat\Gherkin\Node\PyStringNode;
-use Behat\Gherkin\Node\TableNode;
-use Behat\Behat\Tester\Exception\PendingException;
-use Assert\Assertion;
+declare(strict_types=1);
+
 use Assert\Assert;
-
+use Behat\Behat\Context\Context;
+use Enqueue\RdKafka\RdKafkaConnectionFactory;
 use Enqueue\RdKafka\RdKafkaContext;
-use Enqueue\RdKafka\RdKafkaTopic;
-use Enqueue\RdKafka\RdKafkaConsumer;
-use Enqueue\RdKafka\RdKafkaProducer;
-
-use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
-use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 
 /**
  * Defines application features from the specific context.
  */
 class InvalidMessageContext implements Context
 {
-    protected static RdKafkaContext $kafkaContext;
+    private static RdKafkaContext $kafkaContext;
 
-    protected string $channelWithInvalidFilter;
-
-    /**
-     * Initializes context.
-     *
-     * Every scenario gets its own context instance.
-     * You can also pass arbitrary arguments to the
-     * context constructor through behat.yml.
-     */
-    public function __construct()
-    {
-    }
+    private string $channelWithInvalidFilter;
 
     /**
      * @BeforeSuite
      */
-    public static function createKafkaContext(BeforeSuiteScope $scope)
+    public static function createKafkaContext(/* BeforeSuiteScope $scope */): void
     {
-        self::$kafkaContext = (new \Enqueue\RdKafka\RdKafkaConnectionFactory(
+        self::$kafkaContext = (new RdKafkaConnectionFactory(
             [
                 'global' => [
-                    'metadata.broker.list' => getenv('MESSAGE_BROKER_HOST').':'.getenv('MESSAGE_BROKER_PORT'),
+                    'metadata.broker.list' => getenv('MESSAGE_BROKER_HOST') . ':' . getenv('MESSAGE_BROKER_PORT'),
                     'group.id' => 'tester',
                 ],
                 'topic' => [
@@ -58,17 +39,18 @@ class InvalidMessageContext implements Context
     /**
      * @BeforeScenario
      */
-    public static function truncateEventTable(BeforeScenarioScope $scope)
+    public static function truncateEventTable(/* BeforeScenarioScope $scope */): void
     {
-        $con = new PDO("pgsql:host=".getenv('STORE_DB_HOST').";dbname=".getenv('STORE_DB_NAME'), getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
-        $stmt = $con->prepare('TRUNCATE TABLE "event"');
-        $stmt->execute(); 
+        $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+        $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+        $stmt = $con->prepare('TRUNCATE TABLE event');
+        $stmt->execute();
     }
 
     /**
      * @Given The invalid channel is set
      */
-    public function theInvalidChannelIsSet()
+    public function theInvalidChannelIsSet(): void
     {
         Assert::that(getenv('INVALID_CHANNEL'))->notEmpty();
     }
@@ -76,36 +58,50 @@ class InvalidMessageContext implements Context
     /**
      * @When listener encounters an invalid message
      */
-    public function listenerEncountersAnInvalidMessage()
+    public function listenerEncountersAnInvalidMessage(): void
     {
         Assert::that(getenv('EVENT_CHANNELS'))->contains('InvalidFilter');
 
-        $this->channelWithInvalidFilter = explode(';',trim(array_values(array_filter(explode("\n", getenv('EVENT_CHANNELS')), function($row){
-            return str_contains($row, 'InvalidFilter');
-        }))[0]))[0];
-        
+        $this->channelWithInvalidFilter = explode(
+            ';',
+            trim(
+                array_values(
+                    array_filter(
+                        explode("\n", getenv('EVENT_CHANNELS')),
+                        fn ($row) => str_contains($row, 'InvalidFilter')
+                    )
+                )[0]
+            )
+        )[0];
+
         Assert::that($this->channelWithInvalidFilter)->notEmpty();
 
         var_dump($this->channelWithInvalidFilter);
 
         $topic = self::$kafkaContext->createTopic($this->channelWithInvalidFilter);
         $producer = self::$kafkaContext->createProducer();
-        $producer->send($topic, self::$kafkaContext->createMessage("Invalid message",[],["name" => "invalid"]));
+        $producer->send($topic, self::$kafkaContext->createMessage(
+            'Invalid message',
+            [],
+            ['name' => 'invalid']
+        ));
     }
 
     /**
      * @Then it should republish it on invalid channel
      */
-    public function itShouldRepublishItOnInvalidChannel()
+    public function itShouldRepublishItOnInvalidChannel(): void
     {
         $topic = self::$kafkaContext->createTopic(getenv('INVALID_CHANNEL'));
         $consumer = self::$kafkaContext->createConsumer($topic);
         $message = $consumer->receive(60000);
-        if ($message){
-            while($res = $consumer->receive(1000)){
+
+        if ($message !== null) {
+            while ($res = $consumer->receive(1000)) {
                 $message = $res;
             }
         }
+
         $consumer->acknowledge($message);
 
         Assert::that($message)->notNull();

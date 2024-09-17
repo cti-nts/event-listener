@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "beeblebrox3.behat-checker",
+    "bmewburn.vscode-intelephense-client",
+    "EditorConfig.EditorConfig",
+    "ms-azuretools.vscode-containers",
+    "redhat.vscode-yaml",
+    "stevejpurves.cucumber"
+  ]
+}

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Application\Messaging\Impl;
 
@@ -9,13 +11,13 @@ class HeaderNameFilter implements Filter
 {
     protected array $names;
 
-    public function __construct(array $arg)
+    public function __construct(protected readonly array $arg)
     {
         $this->names = $arg;
     }
 
     public function matches(Message $message): bool
     {
-        return in_array($message->getHeader('name'), $this->names);
+        return in_array($message->getHeader('name'), $this->names, true);
     }
 }
