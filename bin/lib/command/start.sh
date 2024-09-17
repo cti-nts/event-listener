@@ -1,7 +1,15 @@
 #!/bin/bash
-PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-source $PARENT_PATH/../lib.sh
 
-source $PARENT_PATH/build.sh
+# shellcheck enable=require-variable-braces disable=SC1091
 
-eval "$COMPOSE_COMMAND start $@"
+set -eo pipefail
+
+PARENT_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd -P
+)
+
+source "${PARENT_PATH}"/../lib.sh
+source "${PARENT_PATH}"/build.sh
+
+eval "${COMPOSE_COMMAND} start $*"

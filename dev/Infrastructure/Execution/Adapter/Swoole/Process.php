@@ -1,9 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Infrastructure\Execution\Adapter\Swoole;
 
 use Application\Execution\Process as ApplicationProcess;
-
 use Swoole\Process as SwooleProcess;
 
 class Process implements ApplicationProcess
@@ -15,8 +16,8 @@ class Process implements ApplicationProcess
         $this->delegate = new SwooleProcess($callback);
     }
 
-    public function getDelegate():SwooleProcess{
+    public function getDelegate(): SwooleProcess
+    {
         return $this->delegate;
     }
-
 }

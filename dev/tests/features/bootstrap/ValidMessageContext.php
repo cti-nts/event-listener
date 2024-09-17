@@ -1,51 +1,31 @@
-<?php declare(strict_types=1);
+<?php
 
-use Behat\Behat\Context\Context;
-use Behat\Gherkin\Node\PyStringNode;
-use Behat\Gherkin\Node\TableNode;
-use Behat\Behat\Tester\Exception\PendingException;
-use Assert\Assertion;
+declare(strict_types=1);
+
 use Assert\Assert;
+use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Call\BeforeScenario;
+use Enqueue\RdKafka\RdKafkaConnectionFactory;
 use Enqueue\RdKafka\RdKafkaContext;
-use Enqueue\RdKafka\RdKafkaTopic;
-use Enqueue\RdKafka\RdKafkaConsumer;
-use Enqueue\RdKafka\RdKafkaProducer;
-
-use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
-use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 
 /**
  * Defines application features from the specific context.
  */
 class ValidMessageContext implements Context
 {
-    protected static RdKafkaContext $kafkaContext;
+    private static RdKafkaContext $kafkaContext;
 
-    protected string $channelWithNoFilterNoTranslator;
-
-    protected string $cannelWithHeaderNameFilter;
-
-    /**
-     * Initializes context.
-     *
-     * Every scenario gets its own context instance.
-     * You can also pass arbitrary arguments to the
-     * context constructor through behat.yml.
-     */
-    public function __construct()
-    {
-    }
+    private string $channelWithNoFilterNoTranslator;
 
     /**
      * @BeforeSuite
      */
-    public static function createKafkaContext(BeforeSuiteScope $scope)
+    public static function createKafkaContext(/* BeforeSuiteScope $scope */): void
     {
-        self::$kafkaContext = (new \Enqueue\RdKafka\RdKafkaConnectionFactory(
+        self::$kafkaContext = (new RdKafkaConnectionFactory(
             [
                 'global' => [
-                    'metadata.broker.list' => getenv('MESSAGE_BROKER_HOST').':'.getenv('MESSAGE_BROKER_PORT'),
+                    'metadata.broker.list' => getenv('MESSAGE_BROKER_HOST') . ':' . getenv('MESSAGE_BROKER_PORT'),
                     'group.id' => 'tester',
                 ],
                 'topic' => [
@@ -60,84 +40,101 @@ class ValidMessageContext implements Context
     /**
      * @BeforeScenario
      */
-    public static function truncateEventTable(BeforeScenarioScope $scope)
+    public static function truncateEventTable(/* BeforeScenarioScope $scope */): void
     {
-        $con = new PDO("pgsql:host=".getenv('STORE_DB_HOST').";dbname=".getenv('STORE_DB_NAME'), getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+        $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+        $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
         $stmt = $con->prepare('TRUNCATE TABLE "event"');
-        $stmt->execute(); 
+        $stmt->execute();
     }
 
-     /**
+    /**
      * @Given The channel is set
      */
-    public function theChannelIsSet()
+    public function theChannelIsSet(): void
     {
-        $this->channelWithNoFilterNoTranslator = trim(array_values(array_filter(explode("\n", getenv('EVENT_CHANNELS')), function($row){
-            return !empty($row) && !str_contains($row, ';');
-        }))[0]);
+        $this->channelWithNoFilterNoTranslator = trim(
+            array_values(
+                array_filter(
+                    explode("\n", getenv('EVENT_CHANNELS')),
+                    fn ($row) => $row !== '' && $row !== '0' && !str_contains($row, ';')
+                )
+            )[0]
+        );
         echo $this->channelWithNoFilterNoTranslator;
     }
 
     /**
-     * @When listener encounters an valid message
+     * @When listener encounters a valid message
      */
-    public function listenerEncountersAnValidMessage()
+    public function listenerEncountersAValidMessage(): void
     {
         $topic = self::$kafkaContext->createTopic($this->channelWithNoFilterNoTranslator);
         $producer = self::$kafkaContext->createProducer();
-        $producer->send($topic, self::$kafkaContext->createMessage('{"attr1": "val1", "attr2": "val2"}',[
-            'id' => 123,
-            'timestamp' => '2022-01-28 12:23:56'
-        ],[
-            'name' => 'eventName',
-            'aggregate_id' => 23,
-            'aggregate_version' => 7
-        ]));
+        $producer->send($topic, self::$kafkaContext->createMessage(
+            '{"attr1": "val1", "attr2": "val2"}',
+            [
+                'id' => 123,
+                'timestamp' => '2022-01-28 12:23:56'
+            ],
+            [
+                'name' => 'eventName',
+                'aggregate_id' => 23,
+                'aggregate_version' => 7
+            ]
+        ));
     }
 
     /**
      * @When listener encounters the same valid message
      */
-    public function listenerEncountersTheSameValidMessage()
+    public function listenerEncountersTheSameValidMessage(): void
     {
-        $this->listenerEncountersAnValidMessage();
+        $this->listenerEncountersAValidMessage();
     }
 
     /**
      * @When listener encounters a valid message with same id from different channel
      */
-    public function listenerEncountersAValidMessageWithSameIdFromDifferentChannel()
+    public function listenerEncountersAValidMessageWithSameIdFromDifferentChannel(): void
     {
-        $topic = self::$kafkaContext->createTopic('forth-channel');
+        $topic = self::$kafkaContext->createTopic('fourth-channel');
         $producer = self::$kafkaContext->createProducer();
-        $producer->send($topic, self::$kafkaContext->createMessage('{"attr1": "val1", "attr2": "val2"}',[
-            'id' => 123,
-            'timestamp' => '2022-01-28 12:23:56'
-        ],[
-            'name' => 'eventName',
-            'aggregate_id' => 23,
-            'aggregate_version' => 7
-        ]));
+        $producer->send($topic, self::$kafkaContext->createMessage(
+            '{"attr1": "val1", "attr2": "val2"}',
+            [
+                'id' => 123,
+                'timestamp' => '2022-01-28 12:23:56'
+            ],
+            [
+                'name' => 'eventName',
+                'aggregate_id' => 23,
+                'aggregate_version' => 7
+            ]
+        ));
     }
 
     /**
      * @Then it should insert it in db
      */
-    public function itShouldInsertItInDb(string $channel = null)
+    public function itShouldInsertItInDb(string $channel = null): void
     {
-        if (!$channel){
+        if (!$channel) {
             $channel = $this->channelWithNoFilterNoTranslator;
         }
+
         $event = null;
         $count = 0;
-        while (!$event && $count<60){
-            $con = new PDO("pgsql:host=".getenv('STORE_DB_HOST').";dbname=".getenv('STORE_DB_NAME'), getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
-            $stmt = $con->prepare('SELECT * FROM event WHERE "source_id" = :eventId and channel = :channel');
-            $stmt->execute([':eventId' => 123, ':channel' => $channel]); 
+        while (!$event && $count < 60) {
+            $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+            $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+            $stmt = $con->prepare('SELECT * FROM event WHERE source_id = :eventId AND channel = :channel');
+            $stmt->execute([':eventId' => 123, ':channel' => $channel]);
             $event = $stmt->fetch();
-            sleep(1);
+            usleep(500_000);
             $count++;
         }
+
         Assert::that($event)->notEmpty();
         Assert::that($event['source_id'])->eq(123);
         Assert::that($event['correlation_id'])->eq(null);
@@ -151,12 +148,15 @@ class ValidMessageContext implements Context
     /**
      * @Then it should insert it in db only once
      */
-    public function itShouldInsertItInDbOnlyOnce()
+    public function itShouldInsertItInDbOnlyOnce(): void
     {
         $this->itShouldInsertItInDb();
-        $con = new PDO("pgsql:host=".getenv('STORE_DB_HOST').";dbname=".getenv('STORE_DB_NAME'), getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+
+        $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+        $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
         $stmt = $con->prepare('SELECT count(*) FROM event');
-        $stmt->execute(); 
+        $stmt->execute();
+
         $count = $stmt->fetch()['count'];
         Assert::that($count)->eq(1);
     }
@@ -164,66 +164,76 @@ class ValidMessageContext implements Context
     /**
      * @Then it should insert both in db
      */
-    public function itShouldInsertBothInDb()
+    public function itShouldInsertBothInDb(): void
     {
         $this->itShouldInsertItInDb();
-        $this->itShouldInsertItInDb('forth-channel');
+        $this->itShouldInsertItInDb('fourth-channel');
     }
 
     /**
-     * @When listener encounters an valid message with correlation id
+     * @When listener encounters a valid message with correlation id
      */
-    public function listenerEncountersAnValidMessageWithCorrelationId()
+    public function listenerEncountersAValidMessageWithCorrelationId(): void
     {
         $topic = self::$kafkaContext->createTopic($this->channelWithNoFilterNoTranslator);
         $producer = self::$kafkaContext->createProducer();
-        $producer->send($topic, self::$kafkaContext->createMessage('{"attr1": "val1", "attr2": "val2"}',[
-            'id' => 123,
-            'correlation_id' => 456,
-            'timestamp' => '2022-01-28 12:23:56'
-        ],[
-            'name' => 'eventName',
-            'aggregate_id' => 23,
-            'aggregate_version' => 7
-        ]));
+        $producer->send($topic, self::$kafkaContext->createMessage(
+            '{"attr1": "val1", "attr2": "val2"}',
+            [
+                'id' => 123,
+                'correlation_id' => '456',
+                'timestamp' => '2022-01-28 12:23:56'
+            ],
+            [
+                'name' => 'eventName',
+                'aggregate_id' => 23,
+                'aggregate_version' => 7
+            ]
+        ));
     }
 
     /**
-     * @When listener encounters an valid message with user id
+     * @When listener encounters a valid message with user id
      */
-    public function listenerEncountersAnValidMessageWithUserId()
+    public function listenerEncountersAValidMessageWithUserId(): void
     {
         $topic = self::$kafkaContext->createTopic($this->channelWithNoFilterNoTranslator);
         $producer = self::$kafkaContext->createProducer();
-        $producer->send($topic, self::$kafkaContext->createMessage('{"attr1": "val1", "attr2": "val2"}',[
-            'id' => 123,
-            'correlation_id' => 456,
-            'user_id' => 'testid',
-            'timestamp' => '2022-01-28 12:23:56'
-        ],[
-            'name' => 'eventName',
-            'aggregate_id' => 23,
-            'aggregate_version' => 7
-        ]));
+        $producer->send($topic, self::$kafkaContext->createMessage(
+            '{"attr1": "val1", "attr2": "val2"}',
+            [
+                'id' => 123,
+                'correlation_id' => '456',
+                'user_id' => 'testid',
+                'timestamp' => '2022-01-28 12:23:56'
+            ],
+            [
+                'name' => 'eventName',
+                'aggregate_id' => 23,
+                'aggregate_version' => 7
+            ]
+        ));
     }
 
     /**
      * @Then it should insert it in db with correlation id
      */
-    public function itShouldInsertItInDbWithCorrelationId()
+    public function itShouldInsertItInDbWithCorrelationId(): void
     {
         $event = null;
         $count = 0;
-        while (!$event && $count<60){
-            $con = new PDO("pgsql:host=".getenv('STORE_DB_HOST').";dbname=".getenv('STORE_DB_NAME'), getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
-            $stmt = $con->prepare('SELECT * FROM event WHERE "correlation_id" = :correlation_id');
-            $stmt->execute([':correlation_id' => 456]); 
+        while (!$event && $count < 60) {
+            $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+            $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+            $stmt = $con->prepare('SELECT * FROM event WHERE correlation_id = :correlation_id');
+            $stmt->execute([':correlation_id' => '456']);
             $event = $stmt->fetch();
-            sleep(1);
+            usleep(500_000);
             $count++;
         }
+
         Assert::that($event)->notEmpty();
-        Assert::that($event['correlation_id'])->eq(456);
+        Assert::that($event['correlation_id'])->eq('456');
         Assert::that($event['timestamp'])->eq('2022-01-28 12:23:56');
         Assert::that($event['name'])->eq('eventName');
         Assert::that($event['aggregate_id'])->eq(23);
@@ -234,18 +244,20 @@ class ValidMessageContext implements Context
     /**
      * @Then it should insert it in db with user id
      */
-    public function itShouldInsertItInDbWithUserId()
+    public function itShouldInsertItInDbWithUserId(): void
     {
         $event = null;
         $count = 0;
-        while (!$event && $count<60){
-            $con = new PDO("pgsql:host=".getenv('STORE_DB_HOST').";dbname=".getenv('STORE_DB_NAME'), getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
-            $stmt = $con->prepare('SELECT * FROM event WHERE "user_id" = :user_id');
-            $stmt->execute([':user_id' => 'testid']); 
+        while (!$event && $count < 60) {
+            $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+            $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+            $stmt = $con->prepare('SELECT * FROM event WHERE user_id = :user_id');
+            $stmt->execute([':user_id' => 'testid']);
             $event = $stmt->fetch();
-            sleep(1);
+            usleep(500_000);
             $count++;
         }
+
         Assert::that($event)->notEmpty();
         Assert::that($event['user_id'])->eq('testid');
         Assert::that($event['timestamp'])->eq('2022-01-28 12:23:56');

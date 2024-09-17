@@ -1,15 +1,21 @@
 #!/bin/bash
-PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+# shellcheck enable=require-variable-braces
+
+set -eo pipefail
+
+PARENT_PATH=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd -P
+)
 
 TYPE=$1
-shift 1
+shift 1 || true
 
-if [ "$TYPE" == "integration" ] || [ -z "$TYPE" ]
-then
-    $PARENT_PATH/env dev exec event-listener vendor/bin/behat $@
-fi
-if [ "$TYPE" == "unit" ] || [ -z "$TYPE" ]
-then
-    $PARENT_PATH/env dev exec event-listener vendor/bin/phpunit $@ tests/unit
+if [[ "${TYPE}" == "integration" || "${TYPE}" =~ ^behaviou?r || -z "${TYPE}" ]]; then
+  "${PARENT_PATH}"/env dev exec event-listener composer run behat -- "$@"
 fi
 
+if [[ "${TYPE}" == "unit" || -z "${TYPE}" ]]; then
+  "${PARENT_PATH}"/env dev exec event-listener composer run phpunit -- "$@"
+fi

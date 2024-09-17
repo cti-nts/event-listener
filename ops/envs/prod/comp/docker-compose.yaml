@@ -1,10 +1,10 @@
 services:
   event-listener:
-    build: 
+    build:
       dockerfile: ops/envs/prod/cont/event-listener/Dockerfile
-      context: ../../../../ 
+      context: ../../../../
     environment:
-      HOST_GID: ${HOST_UID}
+      HOST_GID: ${HOST_GID}
       HOST_UID: ${HOST_UID}
       HTTP_PORT: ${HTTP_PORT}
       TZ: ${TIME_ZONE}
@@ -17,7 +17,7 @@ services:
       STORE_DB_USER: ${STORE_DB_USER}
       STORE_DB_PASSWORD: ${STORE_DB_PASSWORD}
       STORE_DB_NAME: ${STORE_DB_NAME}
-    expose: 
-    - ${HTTP_PORT}
-    ports: 
-    - ${HTTP_PORT}:${HTTP_PORT}
+    expose:
+      - ${HTTP_PORT}
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}

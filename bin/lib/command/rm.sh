@@ -11,4 +11,4 @@ PARENT_PATH=$(
 
 source "${PARENT_PATH}"/../lib.sh
 
-eval "${COMPOSE_COMMAND} build $*"
+eval "${COMPOSE_COMMAND} rm --stop --force $*"

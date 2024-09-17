@@ -1,10 +1,10 @@
 services:
   event-listener:
-    build: 
+    build:
       dockerfile: ops/envs/prod/cont/event-listener/Dockerfile
       context: ../../../../
     environment:
-      HOST_GID: ${HOST_UID}
+      HOST_GID: ${HOST_GID}
       HOST_UID: ${HOST_UID}
       HTTP_PORT: ${HTTP_PORT}
       TZ: ${TIME_ZONE}
@@ -13,36 +13,38 @@ services:
       MESSAGE_CONSUMER_GROUP: ${MESSAGE_CONSUMER_GROUP}
       EVENT_CHANNELS: ${EVENT_CHANNELS}
       INVALID_CHANNEL: ${INVALID_CHANNEL}
-      STORE_DB_HOST: db
+      STORE_DB_HOST: ${STORE_DB_HOST}
       STORE_DB_USER: ${STORE_DB_USER}
       STORE_DB_PASSWORD: ${STORE_DB_PASSWORD}
       STORE_DB_NAME: ${STORE_DB_NAME}
-    expose: 
-    - ${HTTP_PORT}
-    ports: 
-    - ${HTTP_PORT}:${HTTP_PORT}
+    expose:
+      - ${HTTP_PORT}
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
     depends_on:
       - kafka
       - db
+
   zookeeper:
     image: quay.io/strimzi/kafka:0.27.0-kafka-3.0.0
     command: [
-        "sh", "-c",
-        "bin/zookeeper-server-start.sh config/zookeeper.properties"
-      ]
+      "sh", "-c",
+      "bin/zookeeper-server-start.sh config/zookeeper.properties"
+    ]
     expose:
-    - 2181
+      - 2181
     environment:
       LOG_DIR: /tmp/logs
+
   kafka:
     image: evdobe/kafka:strimzi-0.27.0-kafka-3.0.0
     command: [
       "/opt/scripts/entrypoint.sh"
     ]
     depends_on:
-    - zookeeper
+      - zookeeper
     expose:
-    - 29092
+      - 29092
     environment:
       LOG_DIR: "/tmp/logs"
       KAFKA_BROKER_ID: 1
@@ -52,6 +54,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS_SEPARATOR: "$$'\n'"
       KAFKA_CREATE_TOPICS: ${MESSAGE_TOPICS}
+
   db:
     build: ../../dev/cont/db/
     environment:
@@ -61,12 +64,13 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     expose:
       - 5432
+
   tester:
-    build: 
+    build:
       dockerfile: ops/envs/test/cont/tester/Dockerfile
       context: ../../../../
     environment:
-      HOST_GID: ${HOST_UID}
+      HOST_GID: ${HOST_GID}
       HOST_UID: ${HOST_UID}
       HTTP_PORT: ${HTTP_PORT}
       HTTP_HOST: event-listener
@@ -76,7 +80,7 @@ services:
       MESSAGE_CONSUMER_GROUP: ${MESSAGE_CONSUMER_GROUP}
       EVENT_CHANNELS: ${EVENT_CHANNELS}
       INVALID_CHANNEL: ${INVALID_CHANNEL}
-      STORE_DB_HOST: db
+      STORE_DB_HOST: ${STORE_DB_HOST}
       STORE_DB_USER: ${STORE_DB_USER}
       STORE_DB_PASSWORD: ${STORE_DB_PASSWORD}
       STORE_DB_NAME: ${STORE_DB_NAME}
@@ -84,4 +88,3 @@ services:
       - kafka
       - db
       - event-listener
-      

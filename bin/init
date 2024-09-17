@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# shellcheck enable=require-variable-braces
+
+set -eo pipefail
+
+BRANCH=$1
+shift 1 || true
+
+if [[ -n "${BRANCH}" ]]; then
+  git checkout "${BRANCH}"
+fi
+
+cp ops/envs/dev/comp/.dist.env ops/envs/dev/comp/.env
+cp ops/envs/prod/comp/.dist.env ops/envs/prod/comp/.env

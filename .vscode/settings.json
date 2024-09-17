@@ -1,0 +1,37 @@
+{
+  "editor.linkedEditing": true,
+  "editor.tabSize": 2,
+  "editorconfig.generateAuto": false,
+  "files.associations": {
+    "**/bin/env": "shellscript"
+  },
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "html.format.wrapAttributes": "preserve",
+  "html.format.wrapLineLength": 0,
+  "behatChecker.behatPath": "dev/vendor/bin/behat",
+  "behatChecker.configFile": "dev/behat.yaml",
+  "intelephense.telemetry.enabled": false,
+  "redhat.telemetry.enabled": false,
+  "yaml.format.printWidth": 100,
+  "[dockercompose]": {
+    "editor.formatOnSave": true
+  },
+  "[dockerfile]": {
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.formatOnSave": true
+  }
+}

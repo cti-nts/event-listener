@@ -1,0 +1,21 @@
+includes:
+  - vendor/phpstan/phpstan-beberlei-assert/extension.neon
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
+
+parameters:
+  level: 6
+  paths:
+    - .
+  excludePaths:
+    - vendor/*
+  checkDynamicProperties: true
+  strictRules:
+    allRules: true
+    disallowedConstructs: false
+  ignoreErrors:
+    # - identifier: missingType.generics
+    - identifier: missingType.iterableValue
+    - '#^Dynamic call to static method PHPUnit\\Framework\\Assert.*$#'
+    - '#^Only booleans are allowed in (a ternary operator|an if) condition, .* given.$#'
+    - '#^Only booleans are allowed in a negated boolean, .* given.$#'

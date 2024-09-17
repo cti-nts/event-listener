@@ -2,7 +2,7 @@ services:
   event-listener-1:
     build: ../cont/event-listener
     environment:
-      HOST_GID: ${HOST_UID}
+      HOST_GID: ${HOST_GID}
       HOST_UID: ${HOST_UID}
       HTTP_PORT: ${HTTP_PORT}
       TZ: ${TIME_ZONE}
@@ -13,23 +13,24 @@ services:
       MESSAGE_CONSUMER_GROUP: ${MESSAGE_CONSUMER_GROUP}
       EVENT_CHANNELS: ${EVENT_CHANNELS}
       INVALID_CHANNEL: ${INVALID_CHANNEL}
-      STORE_DB_HOST: db
+      STORE_DB_HOST: ${STORE_DB_HOST}
       STORE_DB_USER: ${STORE_DB_USER}
       STORE_DB_PASSWORD: ${STORE_DB_PASSWORD}
       STORE_DB_NAME: ${STORE_DB_NAME}
-    expose: 
-    - ${HTTP_PORT}
-    ports: 
-    - 9501:${HTTP_PORT}
+    expose:
+      - ${HTTP_PORT}
+    ports:
+      - 9501:${HTTP_PORT}
     volumes:
-    - ../../../../dev:/var/www
+      - ../../../../dev:/var/www
     depends_on:
       - kafka-1
       - db
+
   event-listener-2:
     build: ../cont/event-listener
     environment:
-      HOST_GID: ${HOST_UID}
+      HOST_GID: ${HOST_GID}
       HOST_UID: ${HOST_UID}
       HTTP_PORT: ${HTTP_PORT}
       TZ: ${TIME_ZONE}
@@ -40,23 +41,24 @@ services:
       MESSAGE_CONSUMER_GROUP: ${MESSAGE_CONSUMER_GROUP}
       EVENT_CHANNELS: ${EVENT_CHANNELS}
       INVALID_CHANNEL: ${INVALID_CHANNEL}
-      STORE_DB_HOST: db
+      STORE_DB_HOST: ${STORE_DB_HOST}
       STORE_DB_USER: ${STORE_DB_USER}
       STORE_DB_PASSWORD: ${STORE_DB_PASSWORD}
       STORE_DB_NAME: ${STORE_DB_NAME}
-    expose: 
-    - ${HTTP_PORT}
-    ports: 
-    - 9502:${HTTP_PORT}
+    expose:
+      - ${HTTP_PORT}
+    ports:
+      - 9502:${HTTP_PORT}
     volumes:
-    - ../../../../dev:/var/www
+      - ../../../../dev:/var/www
     depends_on:
       - kafka-2
       - db
+
   event-listener-3:
     build: ../cont/event-listener
     environment:
-      HOST_GID: ${HOST_UID}
+      HOST_GID: ${HOST_GID}
       HOST_UID: ${HOST_UID}
       HTTP_PORT: ${HTTP_PORT}
       TZ: ${TIME_ZONE}
@@ -67,16 +69,16 @@ services:
       MESSAGE_CONSUMER_GROUP: ${MESSAGE_CONSUMER_GROUP}
       EVENT_CHANNELS: ${EVENT_CHANNELS}
       INVALID_CHANNEL: ${INVALID_CHANNEL}
-      STORE_DB_HOST: db
+      STORE_DB_HOST: ${STORE_DB_HOST}
       STORE_DB_USER: ${STORE_DB_USER}
       STORE_DB_PASSWORD: ${STORE_DB_PASSWORD}
       STORE_DB_NAME: ${STORE_DB_NAME}
-    expose: 
-    - ${HTTP_PORT}
-    ports: 
-    - 9503:${HTTP_PORT}
+    expose:
+      - ${HTTP_PORT}
+    ports:
+      - 9503:${HTTP_PORT}
     volumes:
-    - ../../../../dev:/var/www
+      - ../../../../dev:/var/www
     depends_on:
       - kafka-3
       - db
@@ -88,13 +90,14 @@ services:
         "/opt/scripts/zookeeper-entrypoint.sh"
       ]
     expose:
-    - 2181
-    - 2888
-    - 3888
+      - 2181
+      - 2888
+      - 3888
     environment:
       LOG_DIR: /tmp/logs
       ZOOKEEPER_ID: 1
       ZOOKEEPER_SERVERS: 1=zookeeper-1:2888:3888;2=zookeeper-2:2888:3888;3=zookeeper-3:2888:3888
+
   zookeeper-2:
     image: evdobe/kafka:strimzi-0.27.0-kafka-3.0.0-ev2
     command: [
@@ -102,13 +105,14 @@ services:
         "/opt/scripts/zookeeper-entrypoint.sh"
       ]
     expose:
-    - 2181
-    - 2888
-    - 3888
+      - 2181
+      - 2888
+      - 3888
     environment:
       LOG_DIR: /tmp/logs
       ZOOKEEPER_ID: 2
       ZOOKEEPER_SERVERS: 1=zookeeper-1:2888:3888;2=zookeeper-2:2888:3888;3=zookeeper-3:2888:3888
+
   zookeeper-3:
     image: evdobe/kafka:strimzi-0.27.0-kafka-3.0.0-ev2
     command: [
@@ -116,23 +120,24 @@ services:
         "/opt/scripts/zookeeper-entrypoint.sh"
       ]
     expose:
-    - 2181
-    - 2888
-    - 3888
+      - 2181
+      - 2888
+      - 3888
     environment:
       LOG_DIR: /tmp/logs
       ZOOKEEPER_ID: 3
       ZOOKEEPER_SERVERS: 1=zookeeper-1:2888:3888;2=zookeeper-2:2888:3888;3=zookeeper-3:2888:3888
+
   kafka-1:
     image: evdobe/kafka:strimzi-0.27.0-kafka-3.0.0-ev2
     command: [
       "/opt/scripts/entrypoint.sh"
     ]
     depends_on:
-    - zookeeper-1
+      - zookeeper-1
     expose:
-    - 9092
-    - 29092
+      - 9092
+      - 29092
     environment:
       LOG_DIR: "/tmp/logs"
       KAFKA_BROKER_ID: 1
@@ -143,16 +148,17 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
       KAFKA_CREATE_TOPICS_SEPARATOR: "$$'\n'"
       KAFKA_CREATE_TOPICS: ${MESSAGE_TOPICS}
+
   kafka-2:
     image: evdobe/kafka:strimzi-0.27.0-kafka-3.0.0-ev2
     command: [
       "/opt/scripts/entrypoint.sh"
     ]
     depends_on:
-    - zookeeper-2
+      - zookeeper-2
     expose:
-    - 9092
-    - 29092
+      - 9092
+      - 29092
     environment:
       LOG_DIR: "/tmp/logs"
       KAFKA_BROKER_ID: 2
@@ -163,16 +169,17 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-2:2181,zookeeper-3:2181,zookeeper-1:2181
       KAFKA_CREATE_TOPICS_SEPARATOR: "$$'\n'"
       KAFKA_CREATE_TOPICS: ${MESSAGE_TOPICS}
+
   kafka-3:
     image: evdobe/kafka:strimzi-0.27.0-kafka-3.0.0-ev2
     command: [
       "/opt/scripts/entrypoint.sh"
     ]
     depends_on:
-    - zookeeper-3
+      - zookeeper-3
     expose:
-    - 9092
-    - 29092
+      - 9092
+      - 29092
     environment:
       LOG_DIR: "/tmp/logs"
       KAFKA_BROKER_ID: 3
@@ -193,4 +200,3 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     expose:
       - 5432
-      

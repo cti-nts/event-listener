@@ -1,30 +1,56 @@
 {
-    "name": "evdobe/event-listener",
-    "description": "A process that listens to a domain event channel, translates and persists events of interest to an event store.",
-    "authors": [
-        {
-            "name": "Konstantinos Togias",
-            "email": "info@ktogias.gr"
-        }
-    ],
-    "require": {
-        "php-di/php-di": "^6.4",
-        "doctrine/annotations": "^1.14.3",
-        "enqueue/enqueue": "^0.10.19",
-        "enqueue/rdkafka": "^0.10.19"
-    },
-    "autoload": {
-        "psr-4": {
-            "Infrastructure\\": "Infrastructure",
-            "Application\\": "Application",
-            "Domain\\": "Domain"
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9.6.13",
-        "behat/behat": "^3.13",
-        "beberlei/assert": "^3.3.2",
-        "curl/curl": "^2.5",
-        "phpspec/prophecy": "^1.17"
+  "name": "evdobe/event-listener",
+  "description": "A process that listens to a domain event channel, translates and persists events of interest to an event store.",
+  "authors": [
+    {
+      "name": "Konstantinos Togias",
+      "email": "info@ktogias.gr"
     }
+  ],
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Application\\": "Application",
+      "Infrastructure\\": "Infrastructure"
+    }
+  },
+  "scripts": {
+    "lint": [
+      "@fix"
+    ],
+    "fix": [
+      "@rector",
+      "@cs-fixer"
+    ],
+    "format": "@cs-fixer",
+    "cs-fixer": "php-cs-fixer fix",
+    "phpstan": "phpstan --configuration=./phpstan.neon --memory-limit=-1",
+    "stan": "@phpstan",
+    "rector": "rector process --no-diffs --config=./rector.php",
+    "behat": "behat",
+    "phpunit": "phpunit --colors=always tests/unit",
+    "test": "@phpunit"
+  },
+  "require": {
+    "php": "^8.3",
+    "enqueue/enqueue": "^0.10.24",
+    "enqueue/rdkafka": "^0.10.20",
+    "php-di/php-di": "^7.0"
+  },
+  "require-dev": {
+    "beberlei/assert": "^3.3.3",
+    "behat/behat": "^3.16",
+    "curl/curl": "^2.5",
+    "friendsofphp/php-cs-fixer": "^3.65",
+    "phpspec/prophecy": "^1.20",
+    "phpstan/phpstan": "^1.12.12",
+    "phpstan/phpstan-beberlei-assert": "^1.1.3",
+    "phpstan/phpstan-deprecation-rules": "^1.2.1",
+    "phpstan/phpstan-strict-rules": "^1.6.1",
+    "phpunit/phpunit": "^11.4",
+    "rector/rector": "^1.2.10"
+  },
+  "config": {
+    "sort-packages": true
+  }
 }

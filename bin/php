@@ -9,6 +9,6 @@ PARENT_PATH=$(
   pwd -P
 )
 
-cmd=$(printf '%q ' "composer $*")
+cmd=$(printf '%q ' "php $*")
 
-"${PARENT_PATH}"/env dev exec event-listener runuser --preserve-environment hostuser -c "${cmd}"
+"${PARENT_PATH}"/env dev exec -T event-listener runuser --preserve-environment hostuser -c "${cmd}"

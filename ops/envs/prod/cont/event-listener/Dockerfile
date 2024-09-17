@@ -1,45 +1,46 @@
-FROM phpswoole/swoole:5.1-php8.2
+FROM phpswoole/swoole:5.1.5-php8.3
 
-ENV LIBRDKAFKA_VERSION v2.3.0 
+ENV LIBRDKAFKA_VERSION 2.3.0
+
 ENV BUILD_DEPS \
-        autoconf \
-        build-essential \
-        git \
-        libpcre3-dev \
-        python-is-python3 \
-        libzip-dev \
-        zip \
-        git \
-        libpq-dev \
-        inotify-tools
+  libpcre3-dev \
+  libzip-dev \
+  libpq-dev
 
-RUN apt-get clean && apt-get update \
-        && apt-get install -y ${BUILD_DEPS} \ 
-        && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-        && docker-php-ext-install zip pgsql pdo_pgsql    
+ENV PHP_EXT \
+  zip \
+  pgsql \
+  pdo_pgsql
 
-RUN cd /tmp \
-    && git clone \
-        --branch ${LIBRDKAFKA_VERSION} \
-        --depth 1 \
-        https://github.com/edenhill/librdkafka.git \
-    && cd librdkafka \
-    && ./configure \
-    && make \
-    && make install \
-    && pecl install rdkafka \
-    && docker-php-ext-enable rdkafka \
-    && rm -rf /tmp/librdkafka \
-    && apt remove -y build-essential \
-    && apt autoremove -y
+RUN \
+  set -ex && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends ${BUILD_DEPS} && \
+  docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
+  docker-php-ext-install -j$(nproc) ${PHP_EXT} && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN \
+  set -ex && \
+  cd /tmp && \
+  curl -LO https://github.com/confluentinc/librdkafka/archive/refs/tags/v${LIBRDKAFKA_VERSION}.tar.gz && \
+  tar -xzf v${LIBRDKAFKA_VERSION}.tar.gz && \
+  cd librdkafka-${LIBRDKAFKA_VERSION} && \
+  ./configure && \
+  make -j$(nproc) && \
+  make install && \
+  pecl install rdkafka && \
+  docker-php-ext-enable rdkafka && \
+  rm -rf /tmp/librdkafka-${LIBRDKAFKA_VERSION} v${LIBRDKAFKA_VERSION}.tar.gz
 
 COPY dev /var/www
 
 ENV TZ=Europe/Athens
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
-RUN sed -ri -e 's!;date.timezone =!date.timezone = "Europe/Athens"!g' /usr/local/etc/php/php.ini
 
-RUN ls /var/www/
-RUN rm -Rf /var/www/vendor /var/www/tests /var/www/.git* /var/www/behat.yaml
-RUN composer install --no-dev --ignore-platform-req=ext-rdkafka
+RUN \
+  set -ex && \
+  ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && \
+  echo ${TZ} > /etc/timezone && \
+  mv "${PHP_INI_DIR}/php.ini-production" "${PHP_INI_DIR}/php.ini" && \
+  sed -ri -e 's!;date.timezone =!date.timezone = "Europe/Athens"!g' "${PHP_INI_DIR}/php.ini" && \
+  composer install --no-ansi --no-cache --no-dev --no-interaction --no-progress --optimize-autoloader

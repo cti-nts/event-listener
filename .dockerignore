@@ -1,0 +1,16 @@
+# folders
+dev/.composer
+dev/tests
+dev/vendor
+
+# files
+dev/*.cache
+**/.gitignore
+**/.gitkeep
+dev/.php-cs-fixer.php
+dev/behat.yaml
+dev/config/autoload/development.*
+dev/config/development.*
+dev/phpstan.neon
+dev/phpunit.xml
+dev/rector.php
