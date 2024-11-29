@@ -1,6 +1,6 @@
-FROM phpswoole/swoole:5.1.5-php8.3
+FROM phpswoole/swoole:5.1.6-php8.3
 
-ENV LIBRDKAFKA_VERSION 2.3.0
+ENV LIBRDKAFKA_VERSION 2.6.1
 
 ENV BUILD_DEPS \
   libpcre3-dev \
