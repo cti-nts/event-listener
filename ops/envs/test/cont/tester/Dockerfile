@@ -2,7 +2,7 @@ FROM phpswoole/swoole:5.1.8-php8.3
 
 ENV LIBRDKAFKA_VERSION=2.11.1
 
-ENV BUILD_DEPS="libpcre3-dev libzip-dev libpq-dev inotify-tools"
+ENV BUILD_DEPS="libzip-dev libpq-dev inotify-tools"
 
 ENV PHP_EXT="zip pgsql pdo_pgsql"
 
