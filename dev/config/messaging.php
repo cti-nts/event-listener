@@ -20,15 +20,15 @@ if (getenv('MESSAGE_BROKER_SECURITY_PROTOCOL') === 'SASL_SSL') {
     $connectionConfig['global']['sasl.password'] = getenv('MESSAGE_BROKER_SASL_PASSWORD');
 }
 
-$channels = array_filter(array_map(fn (string $row) => trim($row), explode("\n", getenv('EVENT_CHANNELS'))));
+$channels = array_filter(array_map(trim(...), explode("\n", getenv('EVENT_CHANNELS'))), static fn ($value) => $value !== '' && $value !== '0');
 
 $channelsConfig = array_reduce($channels, function (array $carry, string $item) {
-    $parts = array_map(fn (string $row) => trim($row), explode(";", $item));
+    $parts = array_map(trim(...), explode(";", $item));
 
     $classConfig = function (string $configStr) {
         $configStrParts = explode("|", $configStr);
         $className = trim(array_shift($configStrParts));
-        $argumentArray = array_map(fn (string $arg) => trim($arg), $configStrParts);
+        $argumentArray = array_map(trim(...), $configStrParts);
         return $className ? [
             'class' => $className,
             'arg' => $argumentArray
