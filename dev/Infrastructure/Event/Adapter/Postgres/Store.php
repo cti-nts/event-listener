@@ -8,6 +8,7 @@ use Application\Event\Mapper;
 use Application\Event\Store as EventStore;
 use Application\Messaging\Message;
 use PDO;
+use RuntimeException;
 
 class Store implements EventStore
 {
@@ -22,8 +23,15 @@ class Store implements EventStore
 
     public function __construct(protected readonly Mapper $mapper)
     {
-        $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
-        $this->con = new PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+        $host = getenv('STORE_DB_HOST') ?: throw new RuntimeException('STORE_DB_HOST environment variable is required');
+        $port = getenv('DB_PORT') ?: '5432';
+        $dbName = getenv('STORE_DB_NAME') ?: throw new RuntimeException('STORE_DB_NAME environment variable is required');
+        $user = getenv('STORE_DB_USER') ?: throw new RuntimeException('STORE_DB_USER environment variable is required');
+        $password = getenv('STORE_DB_PASSWORD') ?: throw new RuntimeException('STORE_DB_PASSWORD environment variable is required');
+        $sslMode = getenv('STORE_DB_SSL_MODE') ?: '';
+
+        $dsn = "pgsql:host=" . $host . ";port=" . $port . ";dbname=" . $dbName . ($sslMode ? ";sslmode=" . $sslMode : "");
+        $this->con = new PDO($dsn, $user, $password);
     }
 
     public function add(Message $message, string $channel): void
