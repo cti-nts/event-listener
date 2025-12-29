@@ -14,30 +14,42 @@ $connectionConfig = [
 ];
 
 if (getenv('MESSAGE_BROKER_SECURITY_PROTOCOL') === 'SASL_SSL') {
-    $connectionConfig['global']['security.protocol'] = 'SASL_SSL';
-    $connectionConfig['global']['sasl.mechanisms'] = getenv('MESSAGE_BROKER_SASL_MECHANISMS') ?: 'PLAIN';
-    $connectionConfig['global']['sasl.username'] = getenv('MESSAGE_BROKER_SASL_USERNAME') ?: '$ConnectionString';
-    $connectionConfig['global']['sasl.password'] = getenv('MESSAGE_BROKER_SASL_PASSWORD');
+    $connectionConfig['global'] += [
+        'security.protocol' => 'SASL_SSL',
+        'sasl.mechanisms' => getenv('MESSAGE_BROKER_SASL_MECHANISMS') ?: 'PLAIN',
+        'sasl.username' => getenv('MESSAGE_BROKER_SASL_USERNAME') ?: '$ConnectionString',
+        'sasl.password' => getenv('MESSAGE_BROKER_SASL_PASSWORD'),
+    ];
 }
 
-$channels = array_filter(array_map(trim(...), explode("\n", getenv('EVENT_CHANNELS'))), static fn ($value) => $value !== '' && $value !== '0');
+$channels = array_filter(
+    array_map(trim(...), explode("\n", getenv('EVENT_CHANNELS'))),
+    static fn ($value) => $value !== '' && $value !== '0'
+);
 
-$channelsConfig = array_reduce($channels, function (array $carry, string $item) {
-    $parts = array_map(trim(...), explode(";", $item));
+$classConfig = function (?string $configStr): ?array {
+    if ($configStr === null || $configStr === '') {
+        return null;
+    }
 
-    $classConfig = function (string $configStr) {
-        $configStrParts = explode("|", $configStr);
-        $className = trim(array_shift($configStrParts));
-        $argumentArray = array_map(trim(...), $configStrParts);
-        return $className ? [
-            'class' => $className,
-            'arg' => $argumentArray
-        ] : null;
-    };
+    $configParts = explode("|", $configStr);
+    $className = trim(array_shift($configParts));
+    $arguments = array_map(trim(...), $configParts);
 
-    $carry[$parts[0]] = [
-        'filter' => count($parts) > 1 ? $classConfig($parts[1]) : null,
-        'translator' => count($parts) > 2 ? $classConfig($parts[2]) : null,
+    return $className ? [
+        'class' => $className,
+        'arg' => $arguments
+    ] : null;
+};
+
+$channelsConfig = array_reduce($channels, function (array $carry, string $channelConfig) use ($classConfig): array {
+    $parts = array_map(trim(...), explode(";", $channelConfig));
+
+    [$channelName, $filterConfig, $translatorConfig] = $parts + [null, null, null];
+
+    $carry[$channelName] = [
+        'filter' => $classConfig($filterConfig),
+        'translator' => $classConfig($translatorConfig),
     ];
 
     return $carry;
