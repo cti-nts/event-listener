@@ -14,6 +14,6 @@ class PingHandler implements Handler
     {
         $response->header(key: 'Content-Type', value: 'application/json');
         $response->header(key: 'Cache-Control', value: 'no-cache');
-        $response->end(content: json_encode(['ack' => time()]));
+        $response->end(content: json_encode(['ack' => time()], JSON_THROW_ON_ERROR));
     }
 }
