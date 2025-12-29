@@ -23,17 +23,19 @@ class EventHandler implements Handler
 
     public function handle(Message $message, string $channel): void
     {
-        if (empty($message->getProperties()['id'])) {
+        $properties = $message->getProperties();
+
+        $messageId = $properties['id'] ?? null;
+        if (empty($messageId)) {
             throw new Exception('Invalid message with empty id property!');
         }
 
-        $messageId = $message->getProperties()['id'];
+        $timestamp = $properties['timestamp'] ?? null;
+        if (empty($timestamp)) {
+            throw new Exception('Invalid message with empty timestamp property!');
+        }
 
-        if ($this->store->hasEvent(
-            sourceId: $messageId,
-            channel: $channel,
-            timestamp: $message->getProperties()['timestamp']
-        )) {
+        if ($this->store->hasEvent(sourceId: $messageId, channel: $channel, timestamp: $timestamp)) {
             echo "Skipping duplicate message with id " . $messageId . " from channel " . $channel . "\n";
             return;
         }
