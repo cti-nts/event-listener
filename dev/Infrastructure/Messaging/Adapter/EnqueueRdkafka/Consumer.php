@@ -57,19 +57,19 @@ class Consumer implements ApplicationConsumer
             } catch (Exception $e) {
                 echo "RECEIVE ERROR!!! Channel: " . $topicName . ", Error: " . $e::class . ", code: " . $e->getCode() . ", message: " . $e->getMessage() . "\n";
 
-                if ($e::class === PDOException::class) {
+                if ($e instanceof PDOException) {
                     echo "DB ERROR!!! I will NOT REJECT the message. I will re-throw it and try again to consume it.\n";
                     throw $e;
                 }
 
-                if (empty($message)) {
+                if (!$message instanceof \Interop\Queue\Message) {
                     continue;
                 }
 
                 echo "REJECTING MESSAGE:\n" . print_r($message, true);
                 $this->delegate->reject($message);
 
-                if (empty($this->invalidTopic)) {
+                if (!$this->invalidTopic instanceof RdKafkaTopic) {
                     continue;
                 }
 
