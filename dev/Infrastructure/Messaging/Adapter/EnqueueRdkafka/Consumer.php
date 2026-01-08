@@ -22,7 +22,7 @@ class Consumer implements ApplicationConsumer
 
     protected RdKafkaConsumer $delegate;
 
-    protected RdKafkaTopic $invalidTopic;
+    protected ?RdKafkaTopic $invalidTopic = null;
 
     public function __construct(
         protected readonly array $config,
