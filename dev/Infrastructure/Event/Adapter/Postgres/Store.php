@@ -14,12 +14,12 @@ class Store implements EventStore
 {
     protected PDO $con;
 
-    protected const UPDATE_EVENT_SQL = '
+    private const string UPDATE_EVENT_SQL = '
         INSERT INTO event(source_id, name, channel, correlation_id, user_id, aggregate_id, aggregate_version, data, "timestamp", received_at)
         VALUES (:source_id, :name, :channel, :correlation_id, :user_id, :aggregate_id, :aggregate_version, :data, :timestamp, NOW())
     ';
 
-    protected const HAS_EVENT_SQL = 'SELECT id FROM event WHERE source_id = :source_id AND channel = :channel AND "timestamp" = :timestamp';
+    private const string HAS_EVENT_SQL = 'SELECT id FROM event WHERE source_id = :source_id AND channel = :channel AND "timestamp" = :timestamp';
 
     public function __construct(protected readonly Mapper $mapper)
     {
