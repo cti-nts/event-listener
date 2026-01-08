@@ -14,6 +14,12 @@
       "Infrastructure\\": "Infrastructure"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Application\\": "tests/unit/Application",
+      "Infrastructure\\": "tests/unit/Infrastructure"
+    }
+  },
   "scripts": {
     "lint": [
       "@fix"

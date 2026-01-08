@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Application;
+
 use PHPUnit\Framework\TestCase;
 
 final class MessagingConfigTest extends TestCase
