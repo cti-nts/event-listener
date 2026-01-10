@@ -1,13 +1,57 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
-BRANCH=$1
+show_help() {
+  cat << EOF
+Usage: ./bin/init [BRANCH]
+
+Initialize the project by copying environment files.
+
+Arguments:
+  BRANCH                Optional: Git branch to checkout before initialization
+
+Examples:
+  ./bin/init                    Initialize on current branch
+  ./bin/init main               Checkout main branch and initialize
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
+
+BRANCH=${1:-}
 shift 1 || true
 
 if [[ -n "${BRANCH}" ]]; then
   git checkout "${BRANCH}"
 fi
 
-cp ops/envs/dev/comp/.dist.env ops/envs/dev/comp/.env
-cp ops/envs/prod/comp/.dist.env ops/envs/prod/comp/.env
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+PROJECT_ROOT="${SCRIPT_DIR}/.."
+
+shopt -s nullglob  # Handle case where glob matches nothing
+
+for env_dir in "${PROJECT_ROOT}"/ops/envs/*/; do
+  if [[ -d "${env_dir}" ]]; then
+    env_name=$(basename "${env_dir}")
+    dist_file="${env_dir}comp/.dist.env"
+    target_file="${env_dir}comp/.env"
+
+    if [[ ! -f "${dist_file}" ]]; then
+      echo "Warning: ${env_name} has no .dist.env file, skipping" >&2
+      continue
+    fi
+
+    if ! cp "${dist_file}" "${target_file}"; then
+      echo "[ERROR]: Failed to initialize ${env_name} environment" >&2
+      exit 1
+    fi
+
+    echo "Initialized ${env_name} environment"
+  fi
+done
+
+shopt -u nullglob

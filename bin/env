@@ -1,20 +1,74 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
 PARENT_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd -P
 )
 
-ENVIRONMENT=$1
+get_available_envs() {
+  local -r parent_path="${1}"
+  local -r envs_dir="${parent_path}/../ops/envs"
+  find "${envs_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort | tr '\n' ', ' | sed 's/,$//' | sed 's/,/, /g'
+}
+
+get_available_commands() {
+  local -r parent_path="${1}"
+  local -r commands_dir="${parent_path}/lib/command"
+  find "${commands_dir}" -mindepth 1 -maxdepth 1 -type f -name "*.sh" -exec basename {} .sh \; | sort | tr '\n' ', ' | sed 's/,$//' | sed 's/,/, /g'
+}
+
+show_help() {
+  local -r available_envs=$(get_available_envs "${PARENT_PATH}")
+  local -r available_commands=$(get_available_commands "${PARENT_PATH}")
+
+  cat << EOF
+Usage: ./bin/env ENVIRONMENT COMMAND [OPTIONS]
+
+Execute docker compose commands for a specific environment.
+
+Arguments:
+  ENVIRONMENT           Environment name: ${available_envs}
+  COMMAND               Command: ${available_commands}
+  OPTIONS               Additional options passed to the command
+
+Examples:
+  ./bin/env dev up              Start dev environment
+  ./bin/env dev down            Stop dev environment
+  ./bin/env dev exec event-listener bash
+  ./bin/env dev logs -f
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
+
+ENVIRONMENT=${1:-}
 shift 1 || true
-COMMAND=$1
+COMMAND=${1:-}
 shift 1 || true
 
 if [[ -z "${ENVIRONMENT}" || -z "${COMMAND}" ]]; then
-  echo "Usage: ./bin/env ENVIRONMENT COMMAND [OPTIONS]"
+  echo "[ERROR] Missing required arguments" >&2
+  echo "Usage: ./bin/env ENVIRONMENT COMMAND [OPTIONS]" >&2
   exit 1
 fi
 
-"${PARENT_PATH}/lib/command/${COMMAND}.sh" "${ENVIRONMENT}" "$@"
+ENV_DIR="${PARENT_PATH}/../ops/envs/${ENVIRONMENT}"
+if [[ ! -d "${ENV_DIR}" ]]; then
+  echo "[ERROR] Environment '${ENVIRONMENT}' does not exist" >&2
+  echo "Available environments: $(get_available_envs "${PARENT_PATH}")" >&2
+  exit 1
+fi
+
+COMMAND_SCRIPT="${PARENT_PATH}/lib/command/${COMMAND}.sh"
+if [[ ! -f "${COMMAND_SCRIPT}" ]]; then
+  echo "[ERROR] Command '${COMMAND}' does not exist" >&2
+  echo "Available commands: $(get_available_commands "${PARENT_PATH}")" >&2
+  exit 1
+fi
+
+"${COMMAND_SCRIPT}" "${ENVIRONMENT}" "$@"

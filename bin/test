@@ -1,19 +1,49 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
+
+show_help() {
+  cat << EOF
+Usage: ./bin/test [TYPE] [OPTIONS]
+
+Run tests for the event-listener project.
+
+Arguments:
+  TYPE                  Test type: 'unit', 'integration', 'behavior', or omit to run all
+
+Examples:
+  ./bin/test                    Run all tests (unit + integration)
+  ./bin/test unit               Run unit tests only
+  ./bin/test integration        Run integration tests
+  ./bin/test -- --filter=MyTest Pass options to test runner
+EOF
+}
 
 PARENT_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd -P
 )
 
-TYPE=$1
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
+
+TYPE=${1:-}
 shift 1 || true
 
-if [[ "${TYPE}" == "integration" || "${TYPE}" =~ ^behaviou?r || -z "${TYPE}" ]]; then
-  "${PARENT_PATH}/env" dev exec event-listener composer run behat -- "$@"
+exit_code=0
+
+if [[ "${TYPE}" == "integration" || "${TYPE}" =~ ^behaviou?r$ || -z "${TYPE}" ]]; then
+  if ! "${PARENT_PATH}/env" dev exec event-listener composer run behat -- "$@"; then
+    exit_code=$?
+  fi
 fi
 
 if [[ "${TYPE}" == "unit" || -z "${TYPE}" ]]; then
-  "${PARENT_PATH}/env" dev exec event-listener composer run phpunit -- "$@"
+  if ! "${PARENT_PATH}/env" dev exec event-listener composer run phpunit -- "$@"; then
+    exit_code=$?
+  fi
 fi
+
+exit "${exit_code}"

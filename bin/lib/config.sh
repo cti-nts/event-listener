@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
-if [[ -z "${ENVIRONMENT}" ]]; then
-  ENVIRONMENT=$1
+if [[ -z "${ENVIRONMENT:-}" ]]; then
+  readonly ENVIRONMENT=${1:-}
   shift 1 || true
 fi

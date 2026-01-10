@@ -1,12 +1,31 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
+
+show_help() {
+  cat << EOF
+Usage: ./bin/composer [COMPOSER_ARGS...]
+
+Run composer commands inside the dev event-listener container.
+
+Examples:
+  ./bin/composer install            Install dependencies
+  ./bin/composer update             Update dependencies
+  ./bin/composer run stan           Run PHPStan
+  ./bin/composer require vendor/package
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
 
 PARENT_PATH=$(
   cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd -P
 )
 
-cmd=$(printf '%q ' "composer $*")
+cmd=$(printf '%q ' composer "$@")
 
 "${PARENT_PATH}/env" dev exec event-listener runuser --preserve-environment hostuser -c "${cmd}"

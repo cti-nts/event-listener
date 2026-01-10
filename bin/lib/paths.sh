@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
-ENV_PATH=${PARENT_PATH}/../../../ops/envs/${ENVIRONMENT}
-export COMPOSE_PATH=${ENV_PATH}/comp
+readonly ENV_PATH="${PARENT_PATH}/../../../ops/envs/${ENVIRONMENT}"
+readonly COMPOSE_PATH="${ENV_PATH}/comp"
+export COMPOSE_PATH

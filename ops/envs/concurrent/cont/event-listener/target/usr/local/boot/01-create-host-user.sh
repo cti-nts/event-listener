@@ -2,12 +2,12 @@
 
 set -eo pipefail
 
-if [[ -z "${HOST_UID}" ]]; then
+if [[ -z "${HOST_UID:-}" ]]; then
   echo "ERROR: please set the HOST_UID environment variable" >&2
   exit 1
 fi
 
-if [[ -z "${HOST_GID}" ]]; then
+if [[ -z "${HOST_GID:-}" ]]; then
   echo "ERROR: please set the HOST_GID environment variable" >&2
   exit 1
 fi
