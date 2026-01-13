@@ -24,6 +24,9 @@ class Consumer implements ApplicationConsumer
 
     protected ?RdKafkaTopic $invalidTopic = null;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(
         protected readonly array $config,
         protected readonly string $channel,

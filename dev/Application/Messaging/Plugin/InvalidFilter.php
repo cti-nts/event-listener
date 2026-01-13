@@ -10,6 +10,9 @@ use Exception;
 
 class InvalidFilter implements Filter
 {
+    /**
+     * @param array<int, string> $arg
+     */
     public function __construct(protected readonly array $arg)
     {
     }

@@ -63,6 +63,10 @@ $httpServer->on(
 
 $httpServer->start();
 
+/**
+ * @param array<string, mixed> $handlerConfig
+ * @param array<string, mixed> $messagingConfig
+ */
 function buildListener(array $handlerConfig, array $messagingConfig, string $channel, Container $container): MessagingConsumer
 {
     $filter = $handlerConfig['filter'] ?

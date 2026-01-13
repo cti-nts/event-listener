@@ -9,6 +9,9 @@ use Application\Messaging\Translator;
 
 class ExampleTranslator1 implements Translator
 {
+    /**
+     * @param array<int, string> $arg
+     */
     public function __construct(protected readonly array $arg)
     {
     }

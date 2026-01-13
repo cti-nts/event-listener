@@ -18,6 +18,9 @@ class Message implements ApplicationMessage
         return $this->delegate->getBody();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getHeaders(): array
     {
         return $this->delegate->getHeaders();
@@ -28,6 +31,9 @@ class Message implements ApplicationMessage
         return $this->delegate->getHeader(name: $name, default: $default);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getProperties(): array
     {
         return $this->delegate->getProperties();

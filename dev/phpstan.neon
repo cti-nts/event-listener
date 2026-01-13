@@ -12,7 +12,7 @@ parameters:
   reportUnmatchedIgnoredErrors: true
   ignoreErrors:
     # - identifier: missingType.generics
-    - identifier: missingType.iterableValue
+    # - identifier: missingType.iterableValue
     - '#^Dynamic call to static method PHPUnit\\Framework\\Assert.*$#'
     # Allow truthy checks for common patterns
     - identifier: ternary.condNotBoolean

@@ -9,8 +9,14 @@ use Application\Messaging\Message;
 
 class HeaderNameFilter implements Filter
 {
+    /**
+     * @var list<string>
+     */
     protected array $names;
 
+    /**
+     * @param array<int, string> $arg
+     */
     public function __construct(protected readonly array $arg)
     {
         $this->names = $arg;

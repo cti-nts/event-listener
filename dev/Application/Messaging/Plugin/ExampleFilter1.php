@@ -9,6 +9,9 @@ use Application\Messaging\Message;
 
 class ExampleFilter1 implements Filter
 {
+    /**
+     * @param array<int, string> $arg
+     */
     public function __construct(protected readonly array $arg)
     {
     }

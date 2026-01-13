@@ -9,6 +9,9 @@ use Application\Messaging\Message;
 
 class Mapper implements EventMapper
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function map(Message $message, string $channel): array
     {
         $props = [

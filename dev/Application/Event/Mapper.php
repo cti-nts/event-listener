@@ -8,5 +8,8 @@ use Application\Messaging\Message;
 
 interface Mapper
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function map(Message $message, string $channel): array;
 }

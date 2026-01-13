@@ -8,10 +8,16 @@ interface Message
 {
     public function getBody(): string;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getHeaders(): array;
 
     public function getHeader(string $name, mixed $default = null): mixed;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getProperties(): array;
 
     public function getProperty(string $name, mixed $default = null): mixed;

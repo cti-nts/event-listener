@@ -36,6 +36,9 @@ class MapperTest extends TestCase
             ->withBody(body: 'a test body');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function expectedEventData(): array
     {
         return [
