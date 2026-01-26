@@ -25,7 +25,7 @@ class MapperTest extends TestCase
 
     private function enqueueRdkafkaMessage(): ApplicationMessage
     {
-        return (new Message(delegate: new RdKafkaMessage()))
+        return new Message(delegate: new RdKafkaMessage())
             ->withHeader(name: 'name', value: 'eventName')
             ->withHeader(name: 'aggregate_id', value: 12)
             ->withHeader(name: 'aggregate_version', value: 13)

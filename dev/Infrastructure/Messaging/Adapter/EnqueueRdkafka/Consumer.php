@@ -33,7 +33,7 @@ class Consumer implements ApplicationConsumer
         protected readonly Handler $handler,
         protected readonly ?string $invalidChannel = null
     ) {
-        $this->context = (new RdKafkaConnectionFactory($config))->createContext();
+        $this->context = new RdKafkaConnectionFactory($config)->createContext();
         $this->topic = $this->context->createTopic($channel);
         $this->delegate = $this->context->createConsumer($this->topic);
 
@@ -82,7 +82,7 @@ class Consumer implements ApplicationConsumer
 
                 $message->setProperty('source', $topicName);
                 $message->setProperty('invalidBy', $this->config['global']['group.id']);
-                $message->setProperty('invalidAt', (new DateTimeImmutable())->format('Y-m-d H:i:s.u'));
+                $message->setProperty('invalidAt', new DateTimeImmutable()->format('Y-m-d H:i:s.u'));
                 $message->setProperty('exception', [
                     'class' => $e::class,
                     'code' => $e->getCode(),

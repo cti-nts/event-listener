@@ -38,7 +38,7 @@
     "test": "@phpunit"
   },
   "require": {
-    "php": "^8.3",
+    "php": "^8.4",
     "enqueue/enqueue": "^0.10.27",
     "enqueue/rdkafka": "^0.10.27",
     "php-di/php-di": "^7.1"
@@ -58,7 +58,7 @@
     "phpstan/phpstan-strict-rules": "^2.0",
     "phpunit/phpunit": "^12.5",
     "rector/rector": "^2.3",
-    "swoole/ide-helper": "^5.1"
+    "swoole/ide-helper": "^6.0"
   },
   "config": {
     "sort-packages": true,

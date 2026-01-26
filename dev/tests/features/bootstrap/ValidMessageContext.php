@@ -22,7 +22,7 @@ class ValidMessageContext implements Context
      */
     public static function createKafkaContext(/* BeforeSuiteScope $scope */): void
     {
-        self::$kafkaContext = (new RdKafkaConnectionFactory(
+        self::$kafkaContext = new RdKafkaConnectionFactory(
             [
                 'global' => [
                     'metadata.broker.list' => getenv('MESSAGE_BROKER_HOST') . ':' . getenv('MESSAGE_BROKER_PORT'),
@@ -34,7 +34,7 @@ class ValidMessageContext implements Context
                     'auto.commit.interval.ms' => '10'
                 ],
             ]
-        ))->createContext();
+        )->createContext();
     }
 
     /**
