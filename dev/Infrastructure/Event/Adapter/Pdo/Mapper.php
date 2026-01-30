@@ -11,16 +11,29 @@ class Mapper implements EventMapper
 {
     public function map(Message $message, string $channel): array
     {
+        $props = [
+            'id' => $message->getProperty('id'),
+            'user_id' => $message->getProperty('user_id') ?: null,
+            'correlation_id' => $message->getProperty('correlation_id') ?: null,
+            'timestamp' => $message->getProperty('timestamp'),
+        ];
+
+        $headers = [
+            'name' => $message->getHeader('name'),
+            'aggregate_id' => $message->getHeader('aggregate_id'),
+            'aggregate_version' => $message->getHeader('aggregate_version'),
+        ];
+
         return [
-            ':name' => $message->getHeader('name'),
-            ':source_id' => $message->getProperty('id'),
+            ':name' => $headers['name'],
+            ':source_id' => $props['id'],
             ':channel' => $channel,
-            ':user_id' => $message->getProperty('user_id') ?: null,
-            ':correlation_id' => $message->getProperty('correlation_id') ?: null,
-            ':aggregate_id' => $message->getHeader('aggregate_id'),
-            ':aggregate_version' => $message->getHeader('aggregate_version'),
+            ':user_id' => $props['user_id'],
+            ':correlation_id' => $props['correlation_id'],
+            ':aggregate_id' => $headers['aggregate_id'],
+            ':aggregate_version' => $headers['aggregate_version'],
             ':data' => $message->getBody(),
-            ':timestamp' => $message->getProperty('timestamp')
+            ':timestamp' => $props['timestamp'],
         ];
     }
 }
