@@ -1,31 +1,17 @@
 FROM phpswoole/swoole:5.1.8-php8.3
 
-ENV LIBRDKAFKA_VERSION=2.12.1
-
 ENV BUILD_DEPS="libzip-dev libpq-dev inotify-tools"
-
 ENV PHP_EXT="zip pgsql pdo_pgsql"
 
 RUN \
   set -ex && \
   apt-get update && \
-  apt-get install -y --no-install-recommends ${BUILD_DEPS} && \
+  apt-get install -y --no-install-recommends ${BUILD_DEPS} librdkafka-dev && \
   docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
   docker-php-ext-install -j$(nproc) ${PHP_EXT} && \
-  rm -rf /var/lib/apt/lists/*
-
-RUN \
-  set -ex && \
-  cd /tmp && \
-  curl -LO https://github.com/confluentinc/librdkafka/archive/refs/tags/v${LIBRDKAFKA_VERSION}.tar.gz && \
-  tar -xzf v${LIBRDKAFKA_VERSION}.tar.gz && \
-  cd librdkafka-${LIBRDKAFKA_VERSION} && \
-  ./configure && \
-  make -j$(nproc) && \
-  make install && \
   pecl install rdkafka && \
   docker-php-ext-enable rdkafka && \
-  rm -rf /tmp/librdkafka-${LIBRDKAFKA_VERSION} v${LIBRDKAFKA_VERSION}.tar.gz
+  rm -rf /var/lib/apt/lists/*
 
 COPY target /
 
