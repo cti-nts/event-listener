@@ -83,6 +83,7 @@ function buildListener(array $handlerConfig, array $messagingConfig, string $cha
         'config' => $messagingConfig['connection'],
         'channel' => $channel,
         'invalidChannel' => $messagingConfig['invalidChannel'],
+        'batch' => $messagingConfig['batch'] ?? [],
         'handler' => $container->make(MessagingHandler::class, [
             'store' => $container->get(Store::class),
             'filter' => $filter,

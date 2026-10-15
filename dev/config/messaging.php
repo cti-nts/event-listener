@@ -58,5 +58,12 @@ $channelsConfig = array_reduce($channels, function (array $carry, string $channe
 return [
     'connection' => $connectionConfig,
     'channels' => $channelsConfig,
-    'invalidChannel' => getenv('INVALID_CHANNEL') ?: null
+    'invalidChannel' => getenv('INVALID_CHANNEL') ?: null,
+    // Messages handled together per consumer process: one duplicate lookup and one insert transaction
+    // per batch instead of two database round trips per message. The wait is how long a started batch
+    // waits for its next message before it is handled.
+    'batch' => [
+        'size' => (int)(getenv('EVENT_BATCH_SIZE') ?: 100),
+        'waitMs' => (int)(getenv('EVENT_BATCH_WAIT_MS') ?: 50),
+    ],
 ];

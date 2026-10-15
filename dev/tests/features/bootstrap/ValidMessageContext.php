@@ -266,4 +266,56 @@ class ValidMessageContext implements Context
         Assert::that($event['aggregate_version'])->eq(7);
         Assert::that($event['channel'])->eq($this->channelWithNoFilterNoTranslator);
     }
+
+    /**
+     * @When listener encounters :count valid messages at once, one of them twice
+     */
+    public function listenerEncountersManyValidMessagesAtOnce(int $count): void
+    {
+        $topic = self::$kafkaContext->createTopic($this->channelWithNoFilterNoTranslator);
+        $producer = self::$kafkaContext->createProducer();
+        for ($i = 1; $i <= $count; $i++) {
+            $producer->send($topic, self::$kafkaContext->createMessage(
+                '{"n": ' . $i . '}',
+                ['id' => 1000 + $i, 'timestamp' => '2022-01-28 12:23:56.123456'],
+                ['name' => 'eventName', 'aggregate_id' => $i, 'aggregate_version' => 1]
+            ));
+            if ($i === intdiv($count, 2)) {
+                // the same message again, in the middle of the burst
+                $producer->send($topic, self::$kafkaContext->createMessage(
+                    '{"n": ' . $i . '}',
+                    ['id' => 1000 + $i, 'timestamp' => '2022-01-28 12:23:56.123456'],
+                    ['name' => 'eventName', 'aggregate_id' => $i, 'aggregate_version' => 1]
+                ));
+            }
+        }
+    }
+
+    /**
+     * @Then it should insert :count of them in db
+     */
+    public function itShouldInsertManyInDb(int $count): void
+    {
+        $dsn = "pgsql:host=" . getenv('STORE_DB_HOST') . ";port=" . (getenv('DB_PORT') ?: '5432') . ";dbname=" . getenv('STORE_DB_NAME') . (getenv('STORE_DB_SSL_MODE') ? ";sslmode=" . getenv('STORE_DB_SSL_MODE') : "");
+        $con = new \PDO($dsn, getenv('STORE_DB_USER'), getenv('STORE_DB_PASSWORD'));
+        $stmt = $con->prepare('SELECT count(*) FROM event WHERE channel = :channel');
+
+        $stored = 0;
+        $tries = 0;
+        while ($stored < $count && $tries < 60) {
+            usleep(500_000);
+            $stmt->execute([':channel' => $this->channelWithNoFilterNoTranslator]);
+            $stored = (int)$stmt->fetch()['count'];
+            $tries++;
+        }
+
+        // give a late duplicate the chance to show up, then it must still be exactly $count
+        usleep(1_000_000);
+        $stmt->execute([':channel' => $this->channelWithNoFilterNoTranslator]);
+        Assert::that((int)$stmt->fetch()['count'])->eq($count);
+
+        $stmt = $con->prepare('SELECT count(DISTINCT source_id) FROM event WHERE channel = :channel');
+        $stmt->execute([':channel' => $this->channelWithNoFilterNoTranslator]);
+        Assert::that((int)$stmt->fetch()['count'])->eq($count);
+    }
 }

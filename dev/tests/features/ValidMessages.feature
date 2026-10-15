@@ -34,3 +34,9 @@ Scenario: Insert a second valid message with same id from another unfiltered and
   When listener encounters a valid message
   And listener encounters a valid message with same id from different channel
   Then it should insert both in db
+
+  @batch
+  Scenario: Insert a burst of valid messages with a duplicate among them, in one batch
+    Given The channel is set
+    When listener encounters 50 valid messages at once, one of them twice
+    Then it should insert 50 of them in db
